@@ -1,27 +1,32 @@
 package com.example.mensai.ui.screens.camerascreen
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mensai.data.ImageClassificationRepository
 import com.example.mensai.domain.Foods
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.Executors
+import javax.inject.Inject
 import kotlin.coroutines.resumeWithException
 
 data class CameraScreenState(
     val inference: Foods = Foods.UNKNOWN
 )
 
-class CameraScreenViewModel : ViewModel() {
+@HiltViewModel
+class CameraScreenViewModel @Inject constructor(
+    private val repository: ImageClassificationRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CameraScreenState())
     val uiState: StateFlow<CameraScreenState> = _uiState.asStateFlow()
@@ -30,8 +35,14 @@ class CameraScreenViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val imageProxy = captureImage(imageCapture)
-                val bitmap = processImage(imageProxy)
+                val bitmap = imageProxy.toBitmap()
                 imageProxy.close()
+                val detectedFood = repository.classifyImage(bitmap)
+                _uiState.update {
+                    it.copy(
+                        inference = detectedFood
+                    )
+                }
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -55,12 +66,5 @@ class CameraScreenViewModel : ViewModel() {
                 }
             )
         }
-
-    private fun processImage(image: ImageProxy): Bitmap {
-        val buffer = image.planes[0].buffer
-        val bytes = ByteArray(buffer.remaining())
-        buffer.get(bytes)
-        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-    }
 
 }

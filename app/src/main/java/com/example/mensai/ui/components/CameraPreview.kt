@@ -5,9 +5,7 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -15,8 +13,9 @@ import androidx.lifecycle.LifecycleOwner
 
 @Composable
 fun CameraPreviewView(
+    imageCapture: ImageCapture,
+    modifier: Modifier
 ) {
-    val imageCapture = remember{ ImageCapture.Builder().build()}
     AndroidView(
         factory = { context ->
             val previewView = PreviewView(context)
@@ -48,6 +47,6 @@ fun CameraPreviewView(
 
             previewView
         },
-        modifier = Modifier.fillMaxSize()
+        modifier = modifier
     )
 }
