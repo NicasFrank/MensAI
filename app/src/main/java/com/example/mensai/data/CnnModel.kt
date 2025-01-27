@@ -21,7 +21,7 @@ class CnnModel @Inject constructor(private val context: Context) {
     private val module = loadModel()
 
     fun inference(bitmap: Bitmap): Foods {
-        val inputTensor = transformImage(loadTestImage() ?: bitmap)
+        val inputTensor = transformImage(bitmap)
         Log.d(
             "CnnModel",
             "Input Data: ${

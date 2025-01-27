@@ -20,7 +20,9 @@ import javax.inject.Inject
 import kotlin.coroutines.resumeWithException
 
 data class CameraScreenState(
-    val inference: Foods = Foods.UNKNOWN
+    val loading: Boolean = false,
+    val showBottomSheet: Boolean = false,
+    val detectedFood: Foods = Foods.UNKNOWN
 )
 
 @HiltViewModel
@@ -32,20 +34,28 @@ class CameraScreenViewModel @Inject constructor(
     val uiState: StateFlow<CameraScreenState> = _uiState.asStateFlow()
 
     fun takePhoto(imageCapture: ImageCapture) {
+        var detectedFood = Foods.UNKNOWN
+        _uiState.update {
+            it.copy(
+                loading = true
+            )
+        }
         viewModelScope.launch {
             try {
                 val imageProxy = captureImage(imageCapture)
                 val bitmap = imageProxy.toBitmap()
                 imageProxy.close()
-                val detectedFood = repository.classifyImage(bitmap)
-                _uiState.update {
-                    it.copy(
-                        inference = detectedFood
-                    )
-                }
+                detectedFood = repository.classifyImage(bitmap)
 
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+            _uiState.update {
+                it.copy(
+                    loading = false,
+                    showBottomSheet = true,
+                    detectedFood = detectedFood
+                )
             }
         }
     }
@@ -67,4 +77,12 @@ class CameraScreenViewModel @Inject constructor(
             )
         }
 
+    fun dismissBottomSheet(){
+        _uiState.update {
+            it.copy(
+                showBottomSheet = false,
+                detectedFood = Foods.UNKNOWN
+            )
+        }
+    }
 }

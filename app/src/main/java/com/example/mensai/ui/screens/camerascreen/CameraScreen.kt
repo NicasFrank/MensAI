@@ -2,9 +2,21 @@ package com.example.mensai.ui.screens.camerascreen
 
 import android.Manifest
 import androidx.camera.core.ImageCapture
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -12,14 +24,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.mensai.R
+import com.example.mensai.domain.Foods
+import com.example.mensai.domain.getFullName
+import com.example.mensai.domain.getPrice
 import com.example.mensai.ui.components.CameraPreviewView
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import java.util.Locale
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CameraScreen(
     viewModel: CameraScreenViewModel = hiltViewModel<CameraScreenViewModel>()
@@ -32,9 +52,77 @@ fun CameraScreen(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        CameraPreviewView(imageCapture = imageCapture, modifier = Modifier.weight(0.9f))
-        Button({ viewModel.takePhoto(imageCapture) }, modifier = Modifier.weight(0.1f)) {
-            Text("Take Photo")
+        CameraPreviewView(imageCapture = imageCapture, modifier = Modifier.weight(1f))
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .height(100.dp)
+                .background(MaterialTheme.colorScheme.scrim)
+                .fillMaxSize()
+        ) {
+            IconButton(
+                { viewModel.takePhoto(imageCapture) },
+                modifier = Modifier.size(50.dp),
+                colors = IconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    disabledContainerColor = Color.Gray,
+                    disabledContentColor = Color.Gray
+                ),
+                enabled = !uiState.loading
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_photo_camera_24),
+                    contentDescription = null
+                )
+            }
+        }
+    }
+    if (uiState.showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.dismissBottomSheet() }
+        ) {
+            if(uiState.detectedFood == Foods.UNKNOWN){
+                NoFoodDetectedText { viewModel.dismissBottomSheet() }
+            } else{
+                FoodDetectedText(uiState) { viewModel.dismissBottomSheet() }
+            }
+        }
+    }
+}
+
+@Composable
+fun FoodDetectedText(uiState: CameraScreenState, onClick: () -> Unit){
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            "${uiState.detectedFood.getFullName()} - ${
+                String.format(
+                    Locale.getDefault(),
+                    "%.2f",
+                    uiState.detectedFood.getPrice()
+                )
+            }€"
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onClick) {
+            Text("Zum Checkout")
+        }
+    }
+}
+
+@Composable
+fun NoFoodDetectedText(onClick: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Erkennung fehlgeschlagen. Bitte erneut versuchen!")
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onClick) {
+            Text("Schließen")
         }
     }
 }
@@ -53,6 +141,6 @@ fun CameraPermissionScreen() {
     if (permissionState.status.isGranted) {
         CameraScreen()
     } else {
-        Text("Bitte Kamera-Berechtigung erlauben", modifier = Modifier.fillMaxSize())
+        Text("Please allow camera usage", modifier = Modifier.fillMaxSize())
     }
 }
