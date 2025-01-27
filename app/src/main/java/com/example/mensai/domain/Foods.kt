@@ -3,6 +3,7 @@ package com.example.mensai.domain
 enum class Foods {
     UNKNOWN,
     PASTATELLER,
+    ALASKA_SEELACHS_EIHUELLE,
     SCHWARZBIERPFANNE,
     SEELACHS_PANADE,
     ELSAESSER_HAENCHEN,
@@ -11,5 +12,4 @@ enum class Foods {
     FLADENBROT_KEBAP,
     FRUEHLINGSROLLE,
     PUTENGYROS,
-    ALASKA_SEELACHS_EIHUELLE,
 }
