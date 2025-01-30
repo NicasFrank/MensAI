@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -82,9 +83,9 @@ fun CameraScreen(
         ModalBottomSheet(
             onDismissRequest = { viewModel.dismissBottomSheet() }
         ) {
-            if(uiState.detectedFood == Foods.UNKNOWN){
+            if (uiState.detectedFood == Foods.UNKNOWN) {
                 NoFoodDetectedText { viewModel.dismissBottomSheet() }
-            } else{
+            } else {
                 FoodDetectedText(uiState) { viewModel.dismissBottomSheet() }
             }
         }
@@ -92,7 +93,7 @@ fun CameraScreen(
 }
 
 @Composable
-fun FoodDetectedText(uiState: CameraScreenState, onClick: () -> Unit){
+fun FoodDetectedText(uiState: CameraScreenState, onClick: () -> Unit) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -106,9 +107,20 @@ fun FoodDetectedText(uiState: CameraScreenState, onClick: () -> Unit){
                 )
             }€"
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         Button(onClick = onClick) {
             Text("Zum Checkout")
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        Button(
+            onClick = onClick, colors = ButtonColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                disabledContainerColor = Color.Gray,
+                disabledContentColor = Color.Gray
+            )
+        ) {
+            Text("Neu Versuchen")
         }
     }
 }

@@ -82,7 +82,7 @@ class CnnModel @Inject constructor(private val context: Context) {
     }
 
     private fun loadTestImage(): Bitmap? {
-        return BitmapFactory.decodeStream(context.assets.open("TestBild_MangoSpargel.jpg"))
+        return BitmapFactory.decodeStream(context.assets.open("TestBild_Putengyros.jpg"))
     }
 
     private fun softmax1D(tensor: Tensor): FloatArray {
